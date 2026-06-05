@@ -18,7 +18,7 @@ $w.onReady(function () {
   });
 
   $w('#searchBtn').onClick(() => {
-    const query = $w('#searchInput').value.trim().toUpperCase();
+    const query = $w('#searchInput').value.trim();
     if (!query) return;
 
     wixData.query('Import1')
@@ -26,8 +26,8 @@ $w.onReady(function () {
       .find()
       .then(results => {
         if (results.items.length === 0) {
-          $w('#noResultsText').expand();
           $w('#searchSection').collapse();
+          $w('#noResultsText').expand();
           return;
         }
         $w('#noResultsText').collapse();
@@ -43,6 +43,7 @@ $w.onReady(function () {
   $w('#backToSearchBtn').onClick(() => {
     $w('#resultsSection').collapse();
     $w('#noResultsText').collapse();
+    $w('#searchInput').value = '';
     $w('#searchSection').expand();
   });
 
@@ -70,6 +71,12 @@ function showRsvpForm() {
 }
 
 function submitRsvp() {
+  if (!$w('#attendingRadio').value) {
+    $w('#submitErrorText').expand();
+    return;
+  }
+  $w('#submitErrorText').collapse();
+
   const attending = $w('#attendingRadio').value === 'attending';
 
   const updatedItem = {
