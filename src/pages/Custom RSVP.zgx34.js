@@ -24,7 +24,7 @@ $w.onReady(function () {
     $w('#noResultsText').collapse();
 
     wixData.query('Import1')
-      .contains('title', query)
+      .containsIgnoreCase('title', query)
       .find()
       .then(results => {
         if (results.items.length === 0) {
