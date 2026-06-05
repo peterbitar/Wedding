@@ -1,0 +1,97 @@
+import wixData from 'wix-data';
+
+let selectedInvitation = null;
+let searchResults = [];
+
+$w.onReady(function () {
+  $w('#resultsSection').collapse();
+  $w('#rsvpSection').collapse();
+  $w('#confirmSection').collapse();
+  $w('#noResultsText').collapse();
+
+  $w('#resultsRepeater').onItemReady(($item, itemData) => {
+    $item('#resultName').text = itemData.partyName;
+    $item('#selectBtn').onClick(() => {
+      selectedInvitation = searchResults.find(i => i._id === itemData._id);
+      showRsvpForm();
+    });
+  });
+
+  $w('#searchBtn').onClick(() => {
+    const query = $w('#searchInput').value.trim().toUpperCase();
+    if (!query) return;
+
+    wixData.query('Import1')
+      .contains('title', query)
+      .find()
+      .then(results => {
+        if (results.items.length === 0) {
+          $w('#noResultsText').expand();
+          $w('#searchSection').collapse();
+          return;
+        }
+        $w('#noResultsText').collapse();
+        searchResults = results.items;
+        showResults(results.items);
+      });
+  });
+
+  $w('#submitBtn').onClick(() => {
+    submitRsvp();
+  });
+
+  $w('#backToSearchBtn').onClick(() => {
+    $w('#resultsSection').collapse();
+    $w('#noResultsText').collapse();
+    $w('#searchSection').expand();
+  });
+
+  $w('#backToResultsBtn').onClick(() => {
+    $w('#rsvpSection').collapse();
+    $w('#resultsSection').expand();
+  });
+});
+
+function showResults(items) {
+  $w('#resultsRepeater').data = items.map(item => ({
+    _id: item._id,
+    partyName: item.title
+  }));
+
+  $w('#searchSection').collapse();
+  $w('#resultsSection').expand();
+}
+
+function showRsvpForm() {
+  $w('#partyNameText').text = selectedInvitation.title;
+  $w('#guestsInput').max = selectedInvitation.maxGuests;
+  $w('#resultsSection').collapse();
+  $w('#rsvpSection').expand();
+}
+
+function submitRsvp() {
+  const attending = $w('#attendingRadio').value === 'attending';
+
+  const updatedItem = {
+    ...selectedInvitation,
+    rsvpStatus: attending ? 'attending' : 'declined',
+    guestsAttending: attending ? Number($w('#guestsInput').value) : 0,
+    dietaryNotes: $w('#dietaryInput').value,
+    message: $w('#messageInput').value,
+    rsvpDate: new Date()
+  };
+
+  wixData.update('Import1', updatedItem)
+    .then(() => {
+      const summary = attending
+        ? `See you there! 🎉 ${updatedItem.guestsAttending} guest(s) attending.`
+        : `Sorry you can't make it. We'll miss you!`;
+
+      $w('#confirmText').text = summary;
+      $w('#rsvpSection').collapse();
+      $w('#confirmSection').expand();
+    })
+    .catch(err => {
+      console.error('RSVP submission failed:', err);
+    });
+}
