@@ -22,11 +22,13 @@ $w.onReady(function () {
     const query = $w('#searchInput').value.trim();
     if (!query) return;
     $w('#noResultsText').collapse();
+    $w('#searchBtn').disable();
 
     wixData.query('Import1')
       .containsIgnoreCase('title', query)
       .find()
       .then(results => {
+        $w('#searchBtn').enable();
         if (results.items.length === 0) {
           $w('#noResultsText').expand();
           return;
@@ -34,6 +36,11 @@ $w.onReady(function () {
         $w('#noResultsText').collapse();
         searchResults = results.items;
         showResults(results.items);
+      })
+      .catch(err => {
+        $w('#searchBtn').enable();
+        $w('#noResultsText').expand();
+        console.error('Search failed:', err);
       });
   });
 
