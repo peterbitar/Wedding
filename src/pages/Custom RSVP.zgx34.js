@@ -24,11 +24,20 @@ $w.onReady(function () {
     $w('#noResultsText').collapse();
     $w('#searchBtn').disable();
 
+    console.log('Searching for:', query);
+
+    const timeout = setTimeout(() => {
+      $w('#searchBtn').enable();
+      console.error('Search timed out');
+    }, 8000);
+
     wixData.query('Import1')
       .containsIgnoreCase('title', query)
       .find()
       .then(results => {
+        clearTimeout(timeout);
         $w('#searchBtn').enable();
+        console.log('Results:', results.items.length);
         if (results.items.length === 0) {
           $w('#noResultsText').expand();
           return;
@@ -38,6 +47,7 @@ $w.onReady(function () {
         showResults(results.items);
       })
       .catch(err => {
+        clearTimeout(timeout);
         $w('#searchBtn').enable();
         $w('#noResultsText').expand();
         console.error('Search failed:', err);
