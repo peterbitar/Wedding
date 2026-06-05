@@ -4,6 +4,7 @@ let selectedInvitation = null;
 let searchResults = [];
 
 $w.onReady(function () {
+  $w('#searchSection').expand();
   $w('#resultsSection').collapse();
   $w('#rsvpSection').collapse();
   $w('#confirmSection').collapse();
@@ -20,13 +21,13 @@ $w.onReady(function () {
   $w('#searchBtn').onClick(() => {
     const query = $w('#searchInput').value.trim();
     if (!query) return;
+    $w('#noResultsText').collapse();
 
     wixData.query('Import1')
       .contains('title', query)
       .find()
       .then(results => {
         if (results.items.length === 0) {
-          $w('#searchSection').collapse();
           $w('#noResultsText').expand();
           return;
         }
