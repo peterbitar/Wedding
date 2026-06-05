@@ -19,7 +19,7 @@ $w.onReady(function () {
   });
 
   $w('#searchBtn').onClick(() => {
-    const query = $w('#searchInput').value.trim();
+    const query = $w('#searchInput').value.trim().toUpperCase();
     if (!query) return;
     $w('#noResultsText').collapse();
     $w('#searchBtn').disable();
@@ -32,7 +32,7 @@ $w.onReady(function () {
     }, 8000);
 
     wixData.query('Import1')
-      .containsIgnoreCase('title', query)
+      .contains('title', query)
       .find()
       .then(results => {
         clearTimeout(timeout);
