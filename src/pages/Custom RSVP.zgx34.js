@@ -72,13 +72,13 @@ $w.onReady(function () {
 });
 
 function showResults(items) {
+  $w('#searchSection').collapse();
+  $w('#resultsSection').expand();
+
   $w('#resultsRepeater').data = items.map(item => ({
     _id: item._id,
     partyName: item.title
   }));
-
-  $w('#searchSection').collapse();
-  $w('#resultsSection').expand();
 }
 
 function showRsvpForm() {
