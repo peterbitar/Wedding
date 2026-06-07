@@ -10,7 +10,7 @@ $w.onReady(function () {
 
   $w('#resultsRepeater').onItemReady(($item, itemData) => {
     $item('#resultName').text = itemData.partyName;
-    $item('#attendingRadio').value = itemData.rsvpStatus === 'attending' ? 'Yes' : '';
+    $item('#dropdownAttending').value = itemData.rsvpStatus || '';
   });
 
   $w('#searchBtn').onClick(() => {
@@ -76,11 +76,11 @@ function submitAllRsvps() {
   let pendingUpdates = [];
 
   $w('#resultsRepeater').forEachItem(($item, itemData) => {
-    const attending = $item('#attendingRadio').value === 'Yes';
+    const value = $item('#dropdownAttending').value;
     const original = searchResults.find(r => r._id === itemData._id);
     pendingUpdates.push({
       ...original,
-      rsvpStatus: attending ? 'attending' : 'declined',
+      rsvpStatus: value || 'declined',
       rsvpDate: new Date()
     });
   });
@@ -93,7 +93,7 @@ function submitAllRsvps() {
         .filter(i => i.rsvpStatus === 'attending')
         .map(i => i.title);
       const decliningNames = pendingUpdates
-        .filter(i => i.rsvpStatus === 'declined')
+        .filter(i => i.rsvpStatus === 'not attending')
         .map(i => i.title);
 
       let summary = '';
