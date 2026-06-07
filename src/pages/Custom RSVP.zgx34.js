@@ -77,6 +77,7 @@ function submitAllRsvps() {
 
   $w('#resultsRepeater').forEachItem(($item, itemData) => {
     const value = $item('#dropdownAttending').value;
+    console.log('Dropdown value for', itemData.partyName, ':', JSON.stringify(value));
     const original = searchResults.find(r => r._id === itemData._id);
     pendingUpdates.push({
       ...original,
