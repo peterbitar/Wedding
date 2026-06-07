@@ -89,12 +89,6 @@ function showRsvpForm() {
 }
 
 function submitRsvp() {
-  if (!$w('#attendingRadio').value || ($w('#attendingRadio').value !== 'Yes' && $w('#attendingRadio').value !== 'No')) {
-    $w('#submitErrorText').show();
-    return;
-  }
-  $w('#submitErrorText').hide();
-
   const attending = $w('#attendingRadio').value === 'Yes';
 
   const updatedItem = {
