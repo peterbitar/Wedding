@@ -10,7 +10,7 @@ $w.onReady(function () {
 
   $w('#resultsRepeater').onItemReady(($item, itemData) => {
     $item('#resultName').text = itemData.partyName;
-    $item('#dropdownAttending').value = itemData.rsvpStatus || '';
+    $item('#dropdownattending').value = itemData.rsvpStatus || '';
   });
 
   $w('#searchBtn').onClick(() => {
@@ -76,7 +76,7 @@ function submitAllRsvps() {
   let pendingUpdates = [];
 
   $w('#resultsRepeater').forEachItem(($item, itemData) => {
-    const value = $item('#dropdownAttending').value;
+    const value = $item('#dropdownattending').value;
     console.log('Dropdown value for', itemData.partyName, ':', JSON.stringify(value));
     const original = searchResults.find(r => r._id === itemData._id);
     pendingUpdates.push({
