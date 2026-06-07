@@ -1,21 +1,16 @@
 import wixData from 'wix-data';
 
-let selectedInvitation = null;
 let searchResults = [];
 
 $w.onReady(function () {
   $w('#searchSection').expand();
   $w('#resultsSection').collapse();
-  $w('#rsvpSection').collapse();
   $w('#confirmSection').collapse();
   $w('#noResultsText').collapse();
 
   $w('#resultsRepeater').onItemReady(($item, itemData) => {
     $item('#resultName').text = itemData.partyName;
-    $item('#selectBtn').onClick(() => {
-      selectedInvitation = searchResults.find(i => i._id === itemData._id);
-      showRsvpForm();
-    });
+    $item('#attendingRadio').value = itemData.rsvpStatus === 'attending' ? 'Yes' : '';
   });
 
   $w('#searchBtn').onClick(() => {
@@ -55,7 +50,7 @@ $w.onReady(function () {
   });
 
   $w('#submitBtn').onClick(() => {
-    submitRsvp();
+    submitAllRsvps();
   });
 
   $w('#backToSearchBtn').onClick(() => {
@@ -63,11 +58,6 @@ $w.onReady(function () {
     $w('#noResultsText').collapse();
     $w('#searchInput').value = '';
     $w('#searchSection').expand();
-  });
-
-  $w('#backToResultsBtn').onClick(() => {
-    $w('#rsvpSection').collapse();
-    $w('#resultsSection').expand();
   });
 });
 
@@ -77,41 +67,45 @@ function showResults(items) {
 
   $w('#resultsRepeater').data = items.map(item => ({
     _id: item._id,
-    partyName: item.title
+    partyName: item.title,
+    rsvpStatus: item.rsvpStatus || ''
   }));
 }
 
-function showRsvpForm() {
-  $w('#partyNameText').text = selectedInvitation.title;
-  $w('#guestsInput').max = selectedInvitation.maxGuests;
-  $w('#resultsSection').collapse();
-  $w('#rsvpSection').expand();
-}
+function submitAllRsvps() {
+  let pendingUpdates = [];
 
-function submitRsvp() {
-  console.log('Radio value:', JSON.stringify($w('#attendingRadio').value));
-  const attending = $w('#attendingRadio').value === 'Yes';
+  $w('#resultsRepeater').forEachItem(($item, itemData) => {
+    const attending = $item('#attendingRadio').value === 'Yes';
+    const original = searchResults.find(r => r._id === itemData._id);
+    pendingUpdates.push({
+      ...original,
+      rsvpStatus: attending ? 'attending' : 'declined',
+      rsvpDate: new Date()
+    });
+  });
 
-  const updatedItem = {
-    ...selectedInvitation,
-    rsvpStatus: attending ? 'attending' : 'declined',
-    guestsAttending: attending ? Number($w('#guestsInput').value) : 0,
-    dietaryNotes: $w('#dietaryInput').value,
-    message: $w('#messageInput').value,
-    rsvpDate: new Date()
-  };
+  $w('#submitBtn').disable();
 
-  wixData.update('Import1', updatedItem)
+  Promise.all(pendingUpdates.map(item => wixData.update('Import1', item)))
     .then(() => {
-      const summary = attending
-        ? `See you there! 🎉 ${updatedItem.guestsAttending} guest(s) attending.`
-        : `Sorry you can't make it. We'll miss you!`;
+      const attendingNames = pendingUpdates
+        .filter(i => i.rsvpStatus === 'attending')
+        .map(i => i.title);
+      const decliningNames = pendingUpdates
+        .filter(i => i.rsvpStatus === 'declined')
+        .map(i => i.title);
+
+      let summary = '';
+      if (attendingNames.length > 0) summary += `Attending: ${attendingNames.join(', ')}. `;
+      if (decliningNames.length > 0) summary += `Not attending: ${decliningNames.join(', ')}.`;
 
       $w('#confirmText').text = summary;
-      $w('#rsvpSection').collapse();
+      $w('#resultsSection').collapse();
       $w('#confirmSection').expand();
     })
     .catch(err => {
+      $w('#submitBtn').enable();
       console.error('RSVP submission failed:', err);
     });
 }
