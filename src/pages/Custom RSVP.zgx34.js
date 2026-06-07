@@ -7,7 +7,7 @@ $w.onReady(function () {
   $w('#pickSection').collapse();
   $w('#rsvpSection').collapse();
   $w('#confirmSection').collapse();
-  $w('#noResultsText').collapse();
+  $w('#noResultsText').hide();
 
   // Step 2: user picks themselves from the search results
   $w('#pickRepeater').onItemReady(($item, itemData) => {
@@ -26,7 +26,7 @@ $w.onReady(function () {
   $w('#searchBtn').onClick(() => {
     const query = $w('#searchInput').value.trim().toUpperCase();
     if (!query) return;
-    $w('#noResultsText').collapse();
+    $w('#noResultsText').hide();
     $w('#searchBtn').disable();
 
     console.log('Searching for:', query);
@@ -44,10 +44,10 @@ $w.onReady(function () {
         $w('#searchBtn').enable();
         console.log('Results:', results.items.length);
         if (results.items.length === 0) {
-          $w('#noResultsText').expand();
+          $w('#noResultsText').show();
           return;
         }
-        $w('#noResultsText').collapse();
+        $w('#noResultsText').hide();
 
         if (results.items.length === 1) {
           // Only one match — skip pick step, go straight to family
@@ -66,7 +66,7 @@ $w.onReady(function () {
       .catch(err => {
         clearTimeout(timeout);
         $w('#searchBtn').enable();
-        $w('#noResultsText').expand();
+        $w('#noResultsText').show();
         console.error('Search failed:', err);
       });
   });
@@ -78,7 +78,7 @@ $w.onReady(function () {
   $w('#backToSearchBtn').onClick(() => {
     $w('#pickSection').collapse();
     $w('#rsvpSection').collapse();
-    $w('#noResultsText').collapse();
+    $w('#noResultsText').hide();
     $w('#searchInput').value = '';
     $w('#searchSection').expand();
   });
