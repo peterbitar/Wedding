@@ -89,13 +89,13 @@ function showRsvpForm() {
 }
 
 function submitRsvp() {
-  if (!$w('#attendingRadio').value) {
+  if (!$w('#attendingRadio').value || ($w('#attendingRadio').value !== 'Yes' && $w('#attendingRadio').value !== 'No')) {
     $w('#submitErrorText').expand();
     return;
   }
   $w('#submitErrorText').collapse();
 
-  const attending = $w('#attendingRadio').value === 'attending';
+  const attending = $w('#attendingRadio').value === 'Yes';
 
   const updatedItem = {
     ...selectedInvitation,
