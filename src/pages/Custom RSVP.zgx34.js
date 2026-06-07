@@ -2,14 +2,16 @@ import wixData from 'wix-data';
 
 let familyResults = [];
 
-$w.onReady(function () {
-  $w('#searchSection').expand();
-  $w('#pickSection').collapse();
-  $w('#rsvpSection').collapse();
-  $w('#confirmSection').collapse();
-  $w('#noResultsText').hide();
+function hide(id) { try { $w(id).collapse(); } catch(e) { $w(id).hide(); } }
+function show(id) { try { $w(id).expand(); } catch(e) { $w(id).show(); } }
 
-  // Step 2: user picks themselves from the search results
+$w.onReady(function () {
+  show('#searchSection');
+  hide('#pickSection');
+  hide('#rsvpSection');
+  hide('#confirmSection');
+  hide('#noResultsText');
+
   $w('#pickRepeater').onItemReady(($item, itemData) => {
     $item('#pickName').text = itemData.title;
     $item('#pickBtn').onClick(() => {
@@ -17,7 +19,6 @@ $w.onReady(function () {
     });
   });
 
-  // Step 3: family members shown in RSVP repeater
   $w('#rsvpRepeater').onItemReady(($item, itemData) => {
     $item('#memberName').text = itemData.title;
     $item('#dropdownattending').value = itemData.rsvpStatus || '';
@@ -26,7 +27,7 @@ $w.onReady(function () {
   $w('#searchBtn').onClick(() => {
     const query = $w('#searchInput').value.trim().toUpperCase();
     if (!query) return;
-    $w('#noResultsText').hide();
+    hide('#noResultsText');
     $w('#searchBtn').disable();
 
     console.log('Searching for:', query);
@@ -44,18 +45,16 @@ $w.onReady(function () {
         $w('#searchBtn').enable();
         console.log('Results:', results.items.length);
         if (results.items.length === 0) {
-          $w('#noResultsText').show();
+          show('#noResultsText');
           return;
         }
-        $w('#noResultsText').hide();
+        hide('#noResultsText');
 
         if (results.items.length === 1) {
-          // Only one match — skip pick step, go straight to family
           loadFamily(results.items[0].partyName);
         } else {
-          // Multiple matches — show pick list
-          $w('#searchSection').collapse();
-          $w('#pickSection').expand();
+          hide('#searchSection');
+          show('#pickSection');
           $w('#pickRepeater').data = results.items.map(item => ({
             _id: item._id,
             title: item.title,
@@ -66,7 +65,7 @@ $w.onReady(function () {
       .catch(err => {
         clearTimeout(timeout);
         $w('#searchBtn').enable();
-        $w('#noResultsText').show();
+        show('#noResultsText');
         console.error('Search failed:', err);
       });
   });
@@ -76,16 +75,16 @@ $w.onReady(function () {
   });
 
   $w('#backToSearchBtn').onClick(() => {
-    $w('#pickSection').collapse();
-    $w('#rsvpSection').collapse();
-    $w('#noResultsText').hide();
+    hide('#pickSection');
+    hide('#rsvpSection');
+    hide('#noResultsText');
     $w('#searchInput').value = '';
-    $w('#searchSection').expand();
+    show('#searchSection');
   });
 
   $w('#backToPickBtn').onClick(() => {
-    $w('#rsvpSection').collapse();
-    $w('#pickSection').expand();
+    hide('#rsvpSection');
+    show('#pickSection');
   });
 });
 
@@ -96,9 +95,9 @@ function loadFamily(partyName) {
     .find()
     .then(results => {
       familyResults = results.items;
-      $w('#pickSection').collapse();
-      $w('#searchSection').collapse();
-      $w('#rsvpSection').expand();
+      hide('#pickSection');
+      hide('#searchSection');
+      show('#rsvpSection');
       $w('#rsvpRepeater').data = results.items.map(item => ({
         _id: item._id,
         title: item.title,
@@ -141,8 +140,8 @@ function submitAllRsvps() {
       if (!summary) summary = 'RSVP submitted!';
 
       $w('#confirmText').text = summary;
-      $w('#rsvpSection').collapse();
-      $w('#confirmSection').expand();
+      hide('#rsvpSection');
+      show('#confirmSection');
     })
     .catch(err => {
       $w('#submitBtn').enable();
