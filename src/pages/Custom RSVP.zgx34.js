@@ -2,15 +2,12 @@ import wixData from 'wix-data';
 
 let familyResults = [];
 
-function hide(id) { try { $w(id).collapse(); } catch(e) { $w(id).hide(); } }
-function show(id) { try { $w(id).expand(); } catch(e) { $w(id).show(); } }
-
 $w.onReady(function () {
-  show('#searchSection');
-  hide('#pickSection');
-  hide('#rsvpSection');
-  hide('#confirmSection');
-  hide('#noResultsText');
+  $w('#searchSection').expand();
+  $w('#pickSection').collapse();
+  $w('#rsvpSection').collapse();
+  $w('#confirmSection').collapse();
+  $w('#noResultsText').hide();
 
   $w('#pickRepeater').onItemReady(($item, itemData) => {
     $item('#pickName').text = itemData.title;
@@ -27,7 +24,7 @@ $w.onReady(function () {
   $w('#searchBtn').onClick(() => {
     const query = $w('#searchInput').value.trim().toUpperCase();
     if (!query) return;
-    hide('#noResultsText');
+    $w('#noResultsText').hide();
     $w('#searchBtn').disable();
 
     console.log('Searching for:', query);
@@ -45,16 +42,16 @@ $w.onReady(function () {
         $w('#searchBtn').enable();
         console.log('Results:', results.items.length);
         if (results.items.length === 0) {
-          show('#noResultsText');
+          $w('#noResultsText').show();
           return;
         }
-        hide('#noResultsText');
+        $w('#noResultsText').hide();
 
         if (results.items.length === 1) {
           loadFamily(results.items[0].partyName);
         } else {
-          hide('#searchSection');
-          show('#pickSection');
+          $w('#searchSection').collapse();
+          $w('#pickSection').expand();
           $w('#pickRepeater').data = results.items.map(item => ({
             _id: item._id,
             title: item.title,
@@ -65,7 +62,7 @@ $w.onReady(function () {
       .catch(err => {
         clearTimeout(timeout);
         $w('#searchBtn').enable();
-        show('#noResultsText');
+        $w('#noResultsText').show();
         console.error('Search failed:', err);
       });
   });
@@ -75,16 +72,16 @@ $w.onReady(function () {
   });
 
   $w('#backToSearchBtn').onClick(() => {
-    hide('#pickSection');
-    hide('#rsvpSection');
-    hide('#noResultsText');
+    $w('#pickSection').collapse();
+    $w('#rsvpSection').collapse();
+    $w('#noResultsText').hide();
     $w('#searchInput').value = '';
-    show('#searchSection');
+    $w('#searchSection').expand();
   });
 
   $w('#backToPickBtn').onClick(() => {
-    hide('#rsvpSection');
-    show('#pickSection');
+    $w('#rsvpSection').collapse();
+    $w('#pickSection').expand();
   });
 });
 
@@ -95,14 +92,14 @@ function loadFamily(partyName) {
     .find()
     .then(results => {
       familyResults = results.items;
-      hide('#pickSection');
-      hide('#searchSection');
-      show('#rsvpSection');
+      $w('#pickSection').collapse();
+      $w('#searchSection').collapse();
       $w('#rsvpRepeater').data = results.items.map(item => ({
         _id: item._id,
         title: item.title,
         rsvpStatus: item.rsvpStatus || ''
       }));
+      $w('#rsvpSection').expand();
     })
     .catch(err => {
       console.error('Failed to load family:', err);
@@ -140,8 +137,8 @@ function submitAllRsvps() {
       if (!summary) summary = 'RSVP submitted!';
 
       $w('#confirmText').text = summary;
-      hide('#rsvpSection');
-      show('#confirmSection');
+      $w('#rsvpSection').collapse();
+      $w('#confirmSection').expand();
     })
     .catch(err => {
       $w('#submitBtn').enable();
