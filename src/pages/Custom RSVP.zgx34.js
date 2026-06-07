@@ -89,6 +89,7 @@ function showRsvpForm() {
 }
 
 function submitRsvp() {
+  console.log('Radio value:', JSON.stringify($w('#attendingRadio').value));
   const attending = $w('#attendingRadio').value === 'Yes';
 
   const updatedItem = {
