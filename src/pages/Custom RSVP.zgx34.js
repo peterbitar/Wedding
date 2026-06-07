@@ -3,12 +3,6 @@ import wixData from 'wix-data';
 let familyResults = [];
 
 $w.onReady(function () {
-  $w('#searchSection').expand();
-  $w('#pickSection').collapse();
-  $w('#rsvpSection').collapse();
-  $w('#confirmSection').collapse();
-  $w('#noResultsText').hide();
-
   $w('#pickRepeater').onItemReady(($item, itemData) => {
     $item('#pickName').text = itemData.title;
     $item('#pickBtn').onClick(() => {
@@ -50,8 +44,8 @@ $w.onReady(function () {
         if (results.items.length === 1) {
           loadFamily(results.items[0].partyName);
         } else {
-          $w('#searchSection').collapse();
-          $w('#pickSection').expand();
+          $w('#searchSection').hide();
+          $w('#pickSection').show();
           $w('#pickRepeater').data = results.items.map(item => ({
             _id: item._id,
             title: item.title,
@@ -72,16 +66,16 @@ $w.onReady(function () {
   });
 
   $w('#backToSearchBtn').onClick(() => {
-    $w('#pickSection').collapse();
-    $w('#rsvpSection').collapse();
+    $w('#pickSection').hide();
+    $w('#rsvpSection').hide();
     $w('#noResultsText').hide();
     $w('#searchInput').value = '';
-    $w('#searchSection').expand();
+    $w('#searchSection').show();
   });
 
   $w('#backToPickBtn').onClick(() => {
-    $w('#rsvpSection').collapse();
-    $w('#pickSection').expand();
+    $w('#rsvpSection').hide();
+    $w('#pickSection').show();
   });
 });
 
@@ -92,14 +86,14 @@ function loadFamily(partyName) {
     .find()
     .then(results => {
       familyResults = results.items;
-      $w('#pickSection').collapse();
-      $w('#searchSection').collapse();
+      $w('#pickSection').hide();
+      $w('#searchSection').hide();
       $w('#rsvpRepeater').data = results.items.map(item => ({
         _id: item._id,
         title: item.title,
         rsvpStatus: item.rsvpStatus || ''
       }));
-      $w('#rsvpSection').expand();
+      $w('#rsvpSection').show();
     })
     .catch(err => {
       console.error('Failed to load family:', err);
@@ -137,8 +131,8 @@ function submitAllRsvps() {
       if (!summary) summary = 'RSVP submitted!';
 
       $w('#confirmText').text = summary;
-      $w('#rsvpSection').collapse();
-      $w('#confirmSection').expand();
+      $w('#rsvpSection').hide();
+      $w('#confirmSection').show();
     })
     .catch(err => {
       $w('#submitBtn').enable();
