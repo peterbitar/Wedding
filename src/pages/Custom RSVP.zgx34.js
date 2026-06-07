@@ -2,7 +2,25 @@ import wixData from 'wix-data';
 
 let familyResults = [];
 
+function collapseEl(id) {
+  const el = $w(id);
+  if (typeof el.collapse === 'function') { el.collapse(); }
+  else { el.hide(); }
+}
+
+function expandEl(id) {
+  const el = $w(id);
+  if (typeof el.expand === 'function') { el.expand(); }
+  else { el.show(); }
+}
+
 $w.onReady(function () {
+  expandEl('#searchSection');
+  collapseEl('#pickSection');
+  collapseEl('#rsvpSection');
+  collapseEl('#confirmSection');
+  $w('#noResultsText').hide();
+
   $w('#pickRepeater').onItemReady(($item, itemData) => {
     $item('#pickName').text = itemData.title;
     $item('#pickBtn').onClick(() => {
@@ -44,8 +62,8 @@ $w.onReady(function () {
         if (results.items.length === 1) {
           loadFamily(results.items[0].partyName);
         } else {
-          $w('#searchSection').hide();
-          $w('#pickSection').show();
+          collapseEl('#searchSection');
+          expandEl('#pickSection');
           $w('#pickRepeater').data = results.items.map(item => ({
             _id: item._id,
             title: item.title,
@@ -66,16 +84,16 @@ $w.onReady(function () {
   });
 
   $w('#backToSearchBtn').onClick(() => {
-    $w('#pickSection').hide();
-    $w('#rsvpSection').hide();
+    collapseEl('#pickSection');
+    collapseEl('#rsvpSection');
     $w('#noResultsText').hide();
     $w('#searchInput').value = '';
-    $w('#searchSection').show();
+    expandEl('#searchSection');
   });
 
   $w('#backToPickBtn').onClick(() => {
-    $w('#rsvpSection').hide();
-    $w('#pickSection').show();
+    collapseEl('#rsvpSection');
+    expandEl('#pickSection');
   });
 });
 
@@ -86,14 +104,14 @@ function loadFamily(partyName) {
     .find()
     .then(results => {
       familyResults = results.items;
-      $w('#pickSection').hide();
-      $w('#searchSection').hide();
+      collapseEl('#pickSection');
+      collapseEl('#searchSection');
       $w('#rsvpRepeater').data = results.items.map(item => ({
         _id: item._id,
         title: item.title,
         rsvpStatus: item.rsvpStatus || ''
       }));
-      $w('#rsvpSection').show();
+      expandEl('#rsvpSection');
     })
     .catch(err => {
       console.error('Failed to load family:', err);
@@ -131,8 +149,8 @@ function submitAllRsvps() {
       if (!summary) summary = 'RSVP submitted!';
 
       $w('#confirmText').text = summary;
-      $w('#rsvpSection').hide();
-      $w('#confirmSection').show();
+      collapseEl('#rsvpSection');
+      expandEl('#confirmSection');
     })
     .catch(err => {
       $w('#submitBtn').enable();
