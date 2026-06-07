@@ -90,10 +90,10 @@ function showRsvpForm() {
 
 function submitRsvp() {
   if (!$w('#attendingRadio').value || ($w('#attendingRadio').value !== 'Yes' && $w('#attendingRadio').value !== 'No')) {
-    $w('#submitErrorText').expand();
+    $w('#submitErrorText').show();
     return;
   }
-  $w('#submitErrorText').collapse();
+  $w('#submitErrorText').hide();
 
   const attending = $w('#attendingRadio').value === 'Yes';
 
