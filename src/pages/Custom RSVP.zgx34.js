@@ -1,15 +1,25 @@
 import wixData from 'wix-data';
 
-let searchResults = [];
+let familyResults = [];
 
 $w.onReady(function () {
   $w('#searchSection').expand();
-  $w('#resultsSection').collapse();
+  $w('#pickSection').collapse();
+  $w('#rsvpSection').collapse();
   $w('#confirmSection').collapse();
   $w('#noResultsText').collapse();
 
-  $w('#resultsRepeater').onItemReady(($item, itemData) => {
-    $item('#resultName').text = itemData.partyName;
+  // Step 2: user picks themselves from the search results
+  $w('#pickRepeater').onItemReady(($item, itemData) => {
+    $item('#pickName').text = itemData.title;
+    $item('#pickBtn').onClick(() => {
+      loadFamily(itemData.partyName);
+    });
+  });
+
+  // Step 3: family members shown in RSVP repeater
+  $w('#rsvpRepeater').onItemReady(($item, itemData) => {
+    $item('#memberName').text = itemData.title;
     $item('#dropdownattending').value = itemData.rsvpStatus || '';
   });
 
@@ -38,8 +48,20 @@ $w.onReady(function () {
           return;
         }
         $w('#noResultsText').collapse();
-        searchResults = results.items;
-        showResults(results.items);
+
+        if (results.items.length === 1) {
+          // Only one match — skip pick step, go straight to family
+          loadFamily(results.items[0].partyName);
+        } else {
+          // Multiple matches — show pick list
+          $w('#searchSection').collapse();
+          $w('#pickSection').expand();
+          $w('#pickRepeater').data = results.items.map(item => ({
+            _id: item._id,
+            title: item.title,
+            partyName: item.partyName
+          }));
+        }
       })
       .catch(err => {
         clearTimeout(timeout);
@@ -54,31 +76,47 @@ $w.onReady(function () {
   });
 
   $w('#backToSearchBtn').onClick(() => {
-    $w('#resultsSection').collapse();
+    $w('#pickSection').collapse();
+    $w('#rsvpSection').collapse();
     $w('#noResultsText').collapse();
     $w('#searchInput').value = '';
     $w('#searchSection').expand();
   });
+
+  $w('#backToPickBtn').onClick(() => {
+    $w('#rsvpSection').collapse();
+    $w('#pickSection').expand();
+  });
 });
 
-function showResults(items) {
-  $w('#searchSection').collapse();
-  $w('#resultsSection').expand();
-
-  $w('#resultsRepeater').data = items.map(item => ({
-    _id: item._id,
-    partyName: item.title,
-    rsvpStatus: item.rsvpStatus || ''
-  }));
+function loadFamily(partyName) {
+  console.log('Loading family for partyName:', partyName);
+  wixData.query('Import1')
+    .eq('partyName', partyName)
+    .find()
+    .then(results => {
+      familyResults = results.items;
+      $w('#pickSection').collapse();
+      $w('#searchSection').collapse();
+      $w('#rsvpSection').expand();
+      $w('#rsvpRepeater').data = results.items.map(item => ({
+        _id: item._id,
+        title: item.title,
+        rsvpStatus: item.rsvpStatus || ''
+      }));
+    })
+    .catch(err => {
+      console.error('Failed to load family:', err);
+    });
 }
 
 function submitAllRsvps() {
   let pendingUpdates = [];
 
-  $w('#resultsRepeater').forEachItem(($item, itemData) => {
+  $w('#rsvpRepeater').forEachItem(($item, itemData) => {
     const value = $item('#dropdownattending').value;
-    console.log('Dropdown value for', itemData.partyName, ':', JSON.stringify(value));
-    const original = searchResults.find(r => r._id === itemData._id);
+    console.log('Dropdown value for', itemData.title, ':', JSON.stringify(value));
+    const original = familyResults.find(r => r._id === itemData._id);
     pendingUpdates.push({
       ...original,
       rsvpStatus: value || 'declined',
@@ -100,9 +138,10 @@ function submitAllRsvps() {
       let summary = '';
       if (attendingNames.length > 0) summary += `Attending: ${attendingNames.join(', ')}. `;
       if (decliningNames.length > 0) summary += `Not attending: ${decliningNames.join(', ')}.`;
+      if (!summary) summary = 'RSVP submitted!';
 
       $w('#confirmText').text = summary;
-      $w('#resultsSection').collapse();
+      $w('#rsvpSection').collapse();
       $w('#confirmSection').expand();
     })
     .catch(err => {
